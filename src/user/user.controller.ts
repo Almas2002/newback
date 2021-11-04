@@ -22,8 +22,8 @@ export class UserController {
     getUser():Promise<User[]>{
         return this.userService.getUsers()
     }
-    @Role("ADMIN")
-    @UseGuards(RoleGuards)
+    //@Role("ADMIN")
+    //@UseGuards(RoleGuards)
     @Post("add-role")
     addRole(@Body()dto:AddRoleDto):Promise<User>{
         return this.userService.addRoleForUser(dto)

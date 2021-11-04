@@ -75,6 +75,7 @@ export class AuthService {
 
     private async validation(dto: LoginUserDto): Promise<User> {
         const user = await this.userService.getUserWithEmail(dto.email)
+        console.log(user)
         const campfirePassword = await bcrypt.compare(dto.password, user.password)
         if (!user || !campfirePassword) {
             throw new HttpException("Некорректный пороль или емейл", HttpStatus.BAD_REQUEST)

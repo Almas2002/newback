@@ -1,4 +1,4 @@
-import {Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Role} from "../role/role.entity";
 import {Shop} from "../shop/shop.entity";
 
@@ -31,14 +31,17 @@ export class User {
     @Column({default:false})
     blocked:boolean
 
-    @Column()
+    @Column({nullable:true})
     avatar:string
 
     @ManyToMany(()=>Role, role =>role.value)
     @JoinTable()
     roles:Role[]
 
-    @ManyToMany(()=>Shop,shop=>shop.users)
+    @OneToMany(()=>Shop,shop=>shop.owner)
+    establishedShops:Shop[]
+
+    @ManyToMany(()=>Shop,shop=>shop.admin_users)
     @JoinTable()
     shops:Shop[];
 

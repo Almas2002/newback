@@ -14,20 +14,11 @@ export class CategoryService {
             const category = await this.categoryRepository.findOne({where:{id:dto.parentCategoryId}})
             return  await this.categoryRepository.save({name:dto.name,parent:category})
     }
+    async getCategoryById(id:number){
+        return await this.categoryRepository.findOne({where:{id},relations:['specs','specs.values']})
+    }
 
     async getAllCategories() {
-        /*return await this.categoryRepository.createQueryBuilder('categories').
-            andWhere('categories.parentCategoryId IS NULL').
-        leftJoinAndSelect('categories.parentCategory', 'parentCategory').
-        leftJoinAndSelect('categories.subCategories', 'subCategories').
-        leftJoinAndSelect('parentCategory.subCategories','secondLevelSub').
-        leftJoinAndSelect('parentCategory.parentCategory','secondLevelPar').
-        leftJoinAndSelect('secondLevelSub.subCategories','threeLevelSub').
-        leftJoinAndSelect('secondLevelSub.parentCategory','threeLevelPar').
-        leftJoinAndSelect('secondLevelPar.subCategories','threeLevelSub1').
-        leftJoinAndSelect('secondLevelPar.parentCategory','threeLevelPar1').
-        getMany()
-         */
         const manager = getManager()
         return await manager.getTreeRepository(Category).findTrees()
     }

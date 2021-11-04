@@ -1,6 +1,12 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
 import {Category} from "../category/category.entity";
 import {Shop} from "../shop/shop.entity";
+import {SpecValues} from "../spec/spec-values.entity";
+
+export enum ProductTypes {
+    PRODUCT="PRODUCT",
+
+}
 
 @Entity('products')
 export class Product {
@@ -14,7 +20,20 @@ export class Product {
     @JoinColumn({name:'categoryId'})
     category:number;
 
+    @Column()
+    smallDesc:string
+
+    @Column({type:"text"})
+    fullDesc:string
+
+
+    @Column()
+    price:number;
+
     @ManyToOne(()=>Shop,shop=>shop.products)
-    shopId:number;
+    shop:Shop;
+
+    @ManyToMany(()=>SpecValues,product=>product.products)
+    specs:SpecValues[]
 
 }

@@ -17,6 +17,12 @@ export class ProductService {
         return await this.productRepository.find()
     }
     async getProductsById(categoryId:number){
-        return await this.productRepository.find({where:{category:categoryId},relations:["category"]});
+        return await this.productRepository.find({where:{category:categoryId},relations:["category","specs","shop"]});
+    }
+    async getProductById(id:number):Promise<Product>{
+        return await this.productRepository.findOne({where:{id},relations:["category","specs","shop","specs.title"]})
+    }
+    async deleteProduct(id:number){
+        return await this.productRepository.delete({id})
     }
 }

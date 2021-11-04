@@ -33,7 +33,7 @@ export class UserService {
     }
 
     async getUserWithEmail(email: string):Promise<User>{
-        return await this.userRepository.findOne({email},{relations: ['roles']})
+        return await this.userRepository.findOne({email},{relations: ['roles','shops','shops.products']})
     }
 
     async addRoleForUser(dto: AddRoleDto): Promise<User> {
@@ -44,7 +44,7 @@ export class UserService {
         }
 
         if(user.roles.some(userRole=>userRole.value == role.value)){
-            throw new HttpException("такой роль есть у пользователя",HttpStatus.BAD_REQUEST)
+            return
 
         }
         user.roles = [...user.roles, role]
@@ -74,6 +74,10 @@ export class UserService {
             throw new HttpException("нет существует такой ссылки",HttpStatus.BAD_REQUEST)
         }
         user.activated = true;
+        await this.userRepository.save(user)
+    }
+
+    async save(user: User) {
         await this.userRepository.save(user)
     }
 }
