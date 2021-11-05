@@ -10,6 +10,7 @@ import {ProductModule} from "../product/product.module";
 @Module({
   controllers: [SpecController],
   providers: [SpecService],
-  imports:[TypeOrmModule.forFeature([Spec,SpecValues]),CategoryModule,ProductModule]
+  imports:[TypeOrmModule.forFeature([Spec,SpecValues]),CategoryModule,ProductModule],
+  exports:[SpecService]
 })
 export class SpecModule {}

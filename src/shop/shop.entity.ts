@@ -1,6 +1,8 @@
-import {Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 import {Product} from "../product/product.entity";
 import {User} from "../user/user.entity";
+import {ShopAddress} from "./addressShop.entity";
+import {OrderShop} from "../order/order-shop.entity";
 
 export enum ShopTypes{
     SELLER="seller",
@@ -26,13 +28,11 @@ export class Shop {
     @ManyToOne(()=>User,user=>user.establishedShops)
     @JoinTable()
     owner:User
+    @Column()
+    legalAddress:string
 
     @Column()
-    address:string
-
-    @Column()
-    city:string
-
+    legalCity:string
     @Column()
     bin_iin:string;
 
@@ -49,5 +49,10 @@ export class Shop {
     @JoinTable()
     admin_users:User[]
 
+    @OneToMany(()=>ShopAddress,address=>address.shopAddress)
+    addresses:ShopAddress[]
+
+    @OneToMany(()=>OrderShop,order=>order.shop)
+    orders:OrderShop[]
 
 }

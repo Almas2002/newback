@@ -1,6 +1,6 @@
 export class CreateProductDto {
-    name:string
-    categoryId:number
-    category1Id:number
-    shopId:number
+    name: string
+    categoryId: number
+    category1Id: number
+    shopId: number
 }

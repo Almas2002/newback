@@ -11,7 +11,7 @@ export class ProductService {
                 @InjectRepository(Category) private categoryRepository:Repository<Category>,) {}
 
     async createProduct(dto:CreateProductDto){
-        return await  this.productRepository.save({...dto,category:dto.categoryId})
+        return await  this.productRepository.save({...dto,shop:{id:dto.shopId},category:{id:dto.categoryId}})
     }
     async getProducts(){
         return await this.productRepository.find()
