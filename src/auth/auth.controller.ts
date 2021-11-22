@@ -14,7 +14,9 @@ export class AuthController {
     @ApiResponse({status:200,type:User})
     @Post('login')
     login(@Body()dto: LoginUserDto,@Res({ passthrough: true }) res) {
-        return this.authService.login(dto,res)
+        return console.log(process.env.DB_NAME +' '+ process.env.DB_HOST +
+            ' '+ process.env.DB_USERNAME +
+            ' '+ process.env.DB_PORT +' '+ process.env.DB_PASSWORD )
     }
     @ApiOperation({summary:"регестрация пользователя"})
     @ApiResponse({status:201,type:User})

@@ -21,6 +21,7 @@ import {ChatModule} from './chat/chat.module';
 
 @Module({
     imports: [UserModule, RoleModule, TypeOrmModule.forRoot(config), ConfigModule.forRoot({
+        isGlobal: true,
         envFilePath: '.env'
     }),
         AuthModule, MailerModule, CategoryModule, ProductModule,
