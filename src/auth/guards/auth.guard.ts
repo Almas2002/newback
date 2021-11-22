@@ -1,19 +1,18 @@
 import {CanActivate, ExecutionContext, Injectable, UnauthorizedException} from "@nestjs/common";
 import {JwtService} from "@nestjs/jwt";
+import {MyRequestInterface} from "../../shop/interfaces";
 
 @Injectable()
 export class AuthGuard implements CanActivate{
-    constructor(private jwt:JwtService) {
+    constructor() {
     }
     canActivate(context: ExecutionContext): boolean | Promise<boolean>{
         try {
-            const req = context.switchToHttp().getRequest()
-            const token = req.headers.authorization.split(' ')[1]
-            if(!token){
+            const req = context.switchToHttp().getRequest<MyRequestInterface>()
+            if(!req.user){
                 throw new UnauthorizedException("Вы не зарегестрированы")
             }
-            req.user = this.jwt.verify(token);
-            return true
+            return  true
         }catch (e) {
             throw new UnauthorizedException("Вы не зарегестрированы")
         }

@@ -40,6 +40,9 @@ export class Shop {
     instagram:string
 
     @Column()
+    phone:string
+
+    @Column()
     shop_type:ShopTypes
 
     @OneToMany(()=>Product,product=>product.shop,{onDelete:"CASCADE"})

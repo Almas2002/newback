@@ -5,11 +5,12 @@ import {User} from "./user.entity";
 import {RegisterUserDto} from "./dto/register-user.dto";
 import {RoleService} from "../role/role.service";
 import {AddRoleDto} from "./dto/add-role.dto";
+import {ProductService} from "../product/product.service";
 
 @Injectable()
 export class UserService {
     constructor(@InjectRepository(User) private userRepository: Repository<User>,
-                private roleService: RoleService) {
+                private roleService: RoleService, private productService: ProductService) {
     }
 
     async createUser(dto: RegisterUserDto): Promise<User> {
@@ -25,15 +26,18 @@ export class UserService {
     }
 
     async getUsers(): Promise<User[]> {
-        const users = await this.userRepository.find({relations:['roles']})
-        for(let user of users){
+        const users = await this.userRepository.find({relations: ['roles']})
+        for (let user of users) {
             delete user.password
         }
         return users
     }
 
-    async getUserWithEmail(email: string):Promise<User>{
-        return await this.userRepository.findOne({email},{relations: ['roles','shops','shops.products']})
+    async getUserWithEmail(email: string,relationList?:string[]): Promise<User> {
+        if(relationList){
+            return await this.userRepository.findOne({email}, {relations: [relationList.join(',')]})
+        }
+        return await this.userRepository.findOne({email}, {relations: ['roles', 'shops', 'shops.products']})
     }
 
     async addRoleForUser(dto: AddRoleDto): Promise<User> {
@@ -43,7 +47,7 @@ export class UserService {
             throw new HttpException("не найден пользователь или роль", HttpStatus.BAD_REQUEST)
         }
 
-        if(user.roles.some(userRole=>userRole.value == role.value)){
+        if (user.roles.some(userRole => userRole.value == role.value)) {
             return
 
         }
@@ -59,8 +63,8 @@ export class UserService {
         if (!user || !role) {
             throw new HttpException("не найден пользователь или роль", HttpStatus.BAD_REQUEST)
         }
-        if(!user.roles.some(userRole=>userRole.value == role.value)){
-            throw new HttpException("такого роля нету у пользователя",HttpStatus.BAD_REQUEST)
+        if (!user.roles.some(userRole => userRole.value == role.value)) {
+            throw new HttpException("такого роля нету у пользователя", HttpStatus.BAD_REQUEST)
         }
         const roles = user.roles.filter(e => e.value !== role.value)
         user.roles = [...roles]
@@ -68,10 +72,11 @@ export class UserService {
         delete user.password
         return user
     }
-    async activationAccount(activationLink:string){
+
+    async activationAccount(activationLink: string) {
         const user = await this.userRepository.findOne({where: {activationLink}});
-        if(!user){
-            throw new HttpException("нет существует такой ссылки",HttpStatus.BAD_REQUEST)
+        if (!user) {
+            throw new HttpException("нет существует такой ссылки", HttpStatus.BAD_REQUEST)
         }
         user.activated = true;
         await this.userRepository.save(user)
@@ -79,5 +84,28 @@ export class UserService {
 
     async save(user: User) {
         await this.userRepository.save(user)
+    }
+
+    async addFavoriteProduct(email: string, productId: number) {
+        const {product, user} = await this.workWithFavorite(email, productId)
+        user.favorites = [...user.favorites, product]
+        await this.save(user)
+        return user
+    }
+
+    async deleteFavoriteProduct(email: string, productId: number) {
+        const {product, user} = await this.workWithFavorite(email, productId)
+        user.favorites = user.favorites.filter(item => item.id !== product.id);
+        await this.save(user)
+        return user
+    }
+
+    private async workWithFavorite(email: string, productId: number) {
+        const user = await this.getUserWithEmail(email,["favorites"])
+        const product = await this.productService.getProductById(productId, ["users"])
+        if (!user || !product) {
+            throw new HttpException("пользователь или продукт не найден", HttpStatus.BAD_REQUEST)
+        }
+        return {user, product}
     }
 }

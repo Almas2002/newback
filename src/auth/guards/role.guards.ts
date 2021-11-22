@@ -28,13 +28,10 @@ export class RoleGuards implements CanActivate {
                 return true
             }
             const req = context.switchToHttp().getRequest()
-            const token = req.headers.authorization.split(' ')[1]
-            if (!token) {
-                throw new UnauthorizedException("Вы не зарегестрированы")
+            if(!req.user){
+                throw new UnauthorizedException("вы не зарегестрированы")
             }
-            const user: User = this.jwtService.verify(token)
-            req.user = user
-            return user.roles.some(role => requiredRoles.includes(role.value))
+            return req.user.roles.some(role => requiredRoles.includes(role.value))
 
         } catch (e) {
             throw new ForbiddenException("у вас нет доступа к этому запросу")

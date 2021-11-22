@@ -65,7 +65,6 @@ export class AuthService {
 
     private async saveToken(userId: number, refresh_token: string) {
         const candidate = await this.tokenRepository.findOne({where: {userId}})
-        console.log(candidate)
         if (candidate) {
 
             return await this.tokenRepository.update({id: candidate.id}, {refresh_token})
@@ -75,7 +74,6 @@ export class AuthService {
 
     private async validation(dto: LoginUserDto): Promise<User> {
         const user = await this.userService.getUserWithEmail(dto.email)
-        console.log(user)
         const campfirePassword = await bcrypt.compare(dto.password, user.password)
         if (!user || !campfirePassword) {
             throw new HttpException("Некорректный пороль или емейл", HttpStatus.BAD_REQUEST)
@@ -105,6 +103,9 @@ export class AuthService {
     }
     async logout(refresh_token:string){
         return await this.tokenRepository.delete({refresh_token})
+    }
+    verifyToken(token:string):User{
+        return this.jwtService.verify(token, {secret: "hello world"})
     }
 
 }

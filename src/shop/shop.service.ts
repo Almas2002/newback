@@ -5,31 +5,38 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {CreateShopDto} from "./dto/create-shop.dto";
 import {UserService} from "../user/user.service";
 import {AddUserToShopDto} from "./dto/add-user-to-shop.dto";
-import {CreateProductDto} from "../product/dto/create-product.dto";
 import {ProductService} from "../product/product.service";
 import {SpecService} from "../spec/spec.service";
 import {AddProductToShopDto} from "./dto/add-product-to-shop.dto";
 import {ShopAddress} from "./addressShop.entity";
 import {AddAddressToShopDto} from "./dto/add-address-to-shop.dto";
 import {DeleteAddressInShopDto} from "./dto/delete-address-in-shop.dto";
+import {OrderService} from "../order/order.service";
+import {StatusOfOrder} from "../order/order-shop.entity";
+import {DeliveryService} from "../delivery/delivery.service";
+import {FileService} from "../file/file.service";
 
 @Injectable()
 export class ShopService {
     constructor(@InjectRepository(Shop) private shopRepository: Repository<Shop>,
                 private userService: UserService, private productService: ProductService,
-                private specService: SpecService, @InjectRepository(ShopAddress) private shopAddressRepository: Repository<ShopAddress>
+                private specService: SpecService,
+                @InjectRepository(ShopAddress) private shopAddressRepository: Repository<ShopAddress>,
+                private orderService:OrderService,private deliveryService:DeliveryService,
+                private fileService:FileService
     ) {
     }
 
 
-    async createShop(dto: CreateShopDto): Promise<Shop> {
-        const user = await this.userService.getUserWithEmail(dto.email)
+    async createShop(dto: CreateShopDto,file,email:string): Promise<Shop> {
+        const user = await this.userService.getUserWithEmail(email)
         if (!user) {
             throw new HttpException("пользователь не найден", HttpStatus.BAD_REQUEST)
         }
-        await this.userService.addRoleForUser({role: "SELLER", email: user.email,})
 
-        const shop = await this.shopRepository.save({...dto, owner: {id: user.id}})
+        await this.userService.addRoleForUser({role: "SELLER", email: user.email,})
+        const fileName = await this.fileService.uploadFile(file)
+        const shop = await this.shopRepository.save({...dto, owner: {id: user.id},logo:fileName})
 
         user.shops = [...user.shops, shop]
         await this.userService.save(user)
@@ -42,7 +49,6 @@ export class ShopService {
         if (!user) {
             throw new HttpException("пользователь не найден", HttpStatus.BAD_REQUEST)
         }
-        console.log(await this.shopRepository.find({relations:["admin_users"]}))
         return user.shops
     }
 
@@ -58,7 +64,7 @@ export class ShopService {
         return shop
     }
 
-    private async deleteUserInShop(dto: AddUserToShopDto): Promise<Shop> {
+     async deleteUserInShop(dto: AddUserToShopDto): Promise<Shop> {
         const {shop, user} = await this.workWithAddUserAndDelete(dto)
         if (!user.shops.some(shopItem => shopItem.name == shop.name)) {
             throw new HttpException("этот пользователь не торговец в этом магазигне", HttpStatus.BAD_REQUEST)
@@ -99,13 +105,15 @@ export class ShopService {
         return await this.shopRepository.find({where: {ownerId}})
     }
 
-    async createProduct(dto: AddProductToShopDto, email) {
-        const shop = await this.shopRepository.findOne({where: {id: dto.product.shopId}, relations: ["admin_users"]})
-        console.log(shop)
+    async createProduct(dto: AddProductToShopDto, email,file:any) {
+        const shop = await this.shopRepository.findOne({where: {id: dto.shopId}, relations: ["admin_users"]})
         if (!shop.admin_users.some(seller => seller.email == email)) {
             throw new HttpException('у вас нет прав добовлять товар для этого магазина', HttpStatus.FORBIDDEN)
         }
-        const product = await this.productService.createProduct(dto.product)
+        const product = await this.productService.createProduct({...dto},file)
+        if(!dto.specs){
+            return product
+        }
         for (let i = 0; i < dto.specs.length; i++) {
             await this.specService.addSpecToProduct({productId: product.id, specValueId: dto.specs[i]})
         }
@@ -143,6 +151,17 @@ export class ShopService {
             throw new HttpException("такого магазина нету", HttpStatus.BAD_REQUEST)
         }
         return shop
+    }
+    async startDelivering(id:number){
+        const shopOrder = await this.orderService.getShopOrder(id);
+        // if(shopOrder.status !== StatusOfOrder.PAYMENT){
+        //      throw new HttpException(" заказ не отплачен ",HttpStatus.BAD_REQUEST)
+        // }
+        await this.orderService.changeShopOrderStatus(id,StatusOfOrder.DELIVERY)
+        const date:Date = new Date(shopOrder.order.date)
+        const data =  await this.deliveryService.createDelivery(shopOrder,date)
+        await this.orderService.updateShopOrderOderNo(id,data.createorder._attributes.orderno)
+        return data.createorder._attributes
     }
 
 }

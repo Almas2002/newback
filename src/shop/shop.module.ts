@@ -8,10 +8,14 @@ import {AuthModule} from "../auth/auth.module";
 import {ProductModule} from "../product/product.module";
 import {SpecModule} from "../spec/spec.module";
 import {ShopAddress} from "./addressShop.entity";
+import {OrderModule} from "../order/order.module";
+import {DeliveryModule} from "../delivery/delivery.module";
+import {FileModule} from "../file/file.module";
 
 @Module({
   controllers: [ShopController],
   providers: [ShopService],
-  imports:[TypeOrmModule.forFeature([Shop,ShopAddress]),UserModule,AuthModule,ProductModule,SpecModule]
+  imports:[TypeOrmModule.forFeature([Shop,ShopAddress]),UserModule,
+    AuthModule,ProductModule,SpecModule,OrderModule,DeliveryModule,FileModule]
 })
 export class ShopModule {}

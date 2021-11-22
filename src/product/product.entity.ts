@@ -3,6 +3,9 @@ import {Category} from "../category/category.entity";
 import {Shop} from "../shop/shop.entity";
 import {SpecValues} from "../spec/spec-values.entity";
 import {OrderProducts} from "../order/order-products.entity";
+import {User} from "../user/user.entity";
+import {Feedback} from "../feedback/feedback.entity";
+import {Message} from "../chat/model/message/message.entity";
 
 export enum ProductTypes {
     PRODUCT="PRODUCT",
@@ -26,6 +29,9 @@ export class Product {
     @Column({type:"text"})
     fullDesc:string
 
+    @Column({nullable:true})
+    image:string
+
     @Column()
     price:number;
 
@@ -35,7 +41,16 @@ export class Product {
     @ManyToMany(()=>SpecValues,product=>product.products)
     specs:SpecValues[]
 
+    @ManyToMany(()=>User,user=>user.favorites)
+    users:User[]
+
     @OneToMany(()=>OrderProducts,order=>order.product)
     orderProducts:OrderProducts[]
+
+    @OneToMany(()=>Feedback,feedback=>feedback.product)
+    feedback:Feedback[]
+
+    @OneToMany(()=>Message,message=>message.product)
+    messages:Message[]
 
 }

@@ -1,6 +1,8 @@
 export class CreateProductDto {
     name: string
     categoryId: number
-    category1Id: number
     shopId: number
+    fullDesc:string;
+    smallDesc:string;
+    price:number;
 }
